@@ -228,7 +228,7 @@ compress_html:
   ignore:
     envs: development
 
-# Post Defaults
+# Post / Page Defaults
 defaults:
   # _posts
   - scope:
@@ -241,9 +241,6 @@ defaults:
       comments: true
       share: true
       related: true
-
-# Pages Defaults
-defaults:
   # _pages
   - scope:
       path: ""
