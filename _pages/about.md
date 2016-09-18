@@ -1,7 +1,7 @@
 ---
 title: "About Me"
 layout: single
-permalink: /about.html
+permalink: /about/
 ---
 
 My name is Chris Neely and I currently work as a Sr. Systems Engineer in Oklahoma City, OK.  If you have any questions that this page does not answer please feel free to contact me.
