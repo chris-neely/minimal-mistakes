@@ -4,8 +4,6 @@ tags:
   - DNS
 ---
 
-Test 2
-
 One of my favorite dynamic DNS services is [DNS-O-Matic](http://www.dnsomatic.com/). DNS-O-Matic is a free service that will announce your dynamic IP changes to multiple dynamic DNS providers with a single update. DNS-O-Matic supports a large number of dynamic dns clients, [this page](https://dnsomatic.com/wiki/software) shows a few tested clients.
 
 For my specific use case I configured [ddclient](https://sourceforge.net/p/ddclient/wiki/Home/) running on my Ubuntu AWS instance to update DNS-O-Matic which in return updates my websites A record at my DNS host.
