@@ -1,10 +1,9 @@
 ---
-layout: post
-title: Configuring dynamic DNS updates for CloudFlare
-categories:
-  - blog
-published: true
+title: "Configuring dynamic DNS updates for CloudFlare"
+tags: 
+  - DNS
 ---
+
 
 One of my favorite dynamic DNS services is [DNS-O-Matic](http://www.dnsomatic.com/). DNS-O-Matic is a free service that will announce your dynamic IP changes to multiple dynamic DNS providers with a single update. DNS-O-Matic supports a large number of dynamic dns clients, [this page](https://dnsomatic.com/wiki/software) shows a few tested clients.
 
