@@ -15,9 +15,10 @@ In order to do this you will need to have your websites DNS service hosted at a 
 
 **Here is a quick rundown of how I configured these services...**
 
-1. Register for an account at DNS-O-Matic
+-Register for an account at DNS-O-Matic
 
-2. Configure your DNS Hosting service at the DNS-O-Matic website. Here is an example for [CloudFlare](https://support.cloudflare.com/hc/en-us/articles/206142407-Using-DNS-O-Matic-dynamic-DNS-updates-with-CloudFlare-):
+-Configure your DNS Hosting service at the DNS-O-Matic website. Here is an example for [CloudFlare](https://support.cloudflare.com/hc/en-us/articles/206142407-Using-DNS-O-Matic-dynamic-DNS-updates-with-CloudFlare-):
+
 ```
 Username: CLOUDFLARE ACCOUNT EMAIL
 API Token: CLOUDFLARE API KEY
@@ -25,12 +26,14 @@ Hostname: DNS HOSTNAME
 Domain: YOUR DOMAIN NAME
 ```
 
-3. Install ddclient on your server:
+-Install ddclient on your server:
+
 ```
 sudo apt-get install ddclient
 ```
 
-4. Edit /etc/ddclient.conf to update your DNS-O-Matic account:
+-Edit /etc/ddclient.conf to update your DNS-O-Matic account:
+
 ```
 use=web, web=myip.dnsomatic.com
 server=updates.dnsomatic.com
@@ -40,11 +43,12 @@ password='dnsomatic_password'
 all.dnsomatic.com
 ```
 
-5. Start the ddclient service and configure to run on boot:
+-Start the ddclient service and configure to run on boot:
+
 ```
 sudo update-rc.d ddclient defaults
 sudo update-rc.d ddclient enable
 sudo /usr/sbin/service/ddclient start
 ```
 
-6. Confirm the WAN IP of your instance has been pushed to DNS-O-Matic and CloudFlare
+-Confirm the WAN IP of your instance has been pushed to DNS-O-Matic and CloudFlare
