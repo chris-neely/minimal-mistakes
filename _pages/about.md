@@ -10,4 +10,4 @@ I have worked in the information technology field for over a decade; beginning a
 
 My latest venture has been working with a team of talented individuals to move away from on-premise solutions to cloud-based solutions and it has been very refreshing and exciting.  One of my goals with this blog is to talk about the pitfalls we faced and the success we reaped.
 
-I am married to my wife Katie and we have two wonderful healthy sons, James and William.  My interests are all things technology, making music, and occasionally gaming.
+I am married to my wife Katie and we have two wonderful healthy sons, James and William.  My interests are all things technology, music production, and occasionally gaming.
