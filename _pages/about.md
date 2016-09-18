@@ -1,3 +1,9 @@
+---
+title: "About Me"
+layout: single
+permalink: /about.html
+---
+
 My name is Chris Neely and I currently work as a Sr. Systems Engineer in Oklahoma City, OK.  If you have any questions that this page does not answer please feel free to contact me.
 
 I have worked in the information technology field for over a decade; beginning as support staff for a dial-up ISP, moving to desk-side support and eventually working up to supporting infrastructure platforms / systems.  During this progression I mostly worked to support and design on-premise infrastructure solutions.
