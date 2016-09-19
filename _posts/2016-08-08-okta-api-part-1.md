@@ -46,7 +46,7 @@ The 0000 number is the group ID and you will need to plug this into the script f
 ## Lets review the code...
 I've put a comment block at the beginning of the script with Information about the script and an example of how to use it. Since this is part of a comment block it will not be executed as part of the code.
 
-```PowerShell
+```
 <#
 Name: get-oktaGroupMembers.ps1
 Purpose: Script for exporting Okta group membership to a csv file
@@ -63,7 +63,7 @@ This line will prevent the script from running if PowerShell version 3.0 or late
 
 Configure the parameters for the script and make them mandatory. I've added a comment next to each parameter so you have an example of what is expected. Parameters make it possible for you to provide these values when executing the script. This saves time as you don't have to hard code values into the script and change them each time you run it.
 
-```PowerShell
+```
 param(
  [Parameter(Mandatory=$true)]$org, # Your tentant prefix - Ex. tenant.okta.com
  [Parameter(Mandatory=$true)]$gid, # The group ID for the group you want to export
@@ -74,14 +74,14 @@ param(
 
 Here we are defining `$allusers` and `$selectedUsers` as empty arrays. This is called typecasting and we are doing this so that our script knows these variables should be Arrays and not some other type of PowerShell object. We will use `$allusers` to store the response of the requests we make and we will use `$selectedUsers` to store the filtered list that removes any users that are deprovisioned.
 
-```PowerShell
+```
 $allusers = @()
 $selectedUsers = @()
 ```
 
 Set `$uri` as the API URI for use in our loop. This is going to be the same URI we found earlier by referencing the Okta API Documentation. We are defining this outside of the loop as the loop will need to re-define $uri in each iteration to account for the [pagination](http://developer.okta.com/docs/api/getting_started/design_principles.html#pagination) built into the Okta API.
 
-```PowerShell
+```
 $uri = "https://$org.okta.com/api/v1/groups/$gid/users"
 ```
 
@@ -89,7 +89,7 @@ We will be using a `DO WHILE` loop which will allow the loop to run until a cert
 
 `Invoke-WebRequest` is very similar to CURL, it is going to pass our HTTPS request to the Okta API and then we are going to store the response of that request as a variable named `$webrequest`. It is important to include the method (which we previously noted as being `Get`) and the Authorization Token with the request.
 
-```PowerShell
+```
 $webrequest = Invoke-WebRequest -Headers @{"Authorization" = "SSWS $api_token"} -Method Get -Uri $uri
 ```
 
@@ -99,60 +99,69 @@ Below I have included an example from the Okta API documentation which shows the
 
 
 This is a sample of what the 'link' header response looks like:
-`<https://your-domain.okta.com/api/v1/groups/0000/users?limit=200>; rel="self"`
-`<https://your-domain.okta.com/api/v1/groups/0000/users?after=0000&limit=200>; rel="next"`
 
-```PowerShell
+```
+<https://your-domain.okta.com/api/v1/groups/0000/users?limit=200>; rel="self"
+<https://your-domain.okta.com/api/v1/groups/0000/users?after=0000&limit=200>; rel="next"
+```
+
+```
 $link = $webrequest.Headers.Link.Split("<").Split(">")
 ```
 
 The URL we will use to request the next page of users is the fourth index in the `$link` array we created in the previous step (remember that arrays start with at index 0). It is important for us to update `$uri` with this link inside of the loop because the Invoke-WebRequest (which is also in the loop) uses `$uri` to send the new web request for each page of users. If we did not update this URI we would just end up with an endless loop of the same users over and over again as the WebRequest result would be the same every iteration of the loop and the `WHILE` condition would never be met.
 
-```PowerShell
+```
 $uri = $link[3]
 ```
 
 Okta formats thier results in JSON so we use ConvertFrom-Json to convert the results of the web request to JSON. We then store the current page of user results in the $json object.
 
-```PowerShell
+```
 $json = $webrequest | ConvertFrom-Json
 ```
 
-At this point we need a way to store all of the pages of users in one array.  The answer is to append the converted JSON results to the $allusers array.  If there are multiple iterations of the loop performed we have an all-inclusive list of previous results plus the current iterations results.  If we skip this step then we would just overwrite our results every time the loop ran and not end up with all of the users.
-<pre>$allusers += $json</pre>
-&nbsp;
+At this point we need a way to store all of the pages of users in one array. The answer is to append the converted JSON results to the `$allusers` array. If there are multiple iterations of the loop performed we have an all-inclusive list of previous results plus the current iterations results. If we skip this step then we would just overwrite our results every time the loop ran and not end up with all of the users.
 
-We've reached the end of our DO WHILE loop which contains the condition that must be met in order to stop the loop.  This loop will continue until the 'link' header value does not end with rel="next".  When you get to the last page of results of the pagination the Okta API will no return a link in the header with <em><code><span class="s">rel="next"</span></code></em> at the end. This is how we know we are finished and the loop can end.
-<pre>} while ($webrequest.Headers.Link.EndsWith('rel="next"'))</pre>
-&nbsp;
+```
+$allusers += $json
+```
 
-Now that we have looped through all of the pages of users and stored them in the $allusers variable we will use the Where-Object cmdlet to filter the results and remove any users whose status is DEPROVISIONED.
-<pre>$activeUsers = $allusers | Where-Object { $_.status -ne "DEPROVISIONED" }</pre>
-&nbsp;
+We've reached the end of our DO WHILE loop which contains the condition that must be met in order to stop the loop. This loop will continue until the `link` header value does not end with `rel="next"`. When you get to the last page of results of the pagination the Okta API will no return a link in the header with `rel="next"` at the end. This is how we know we are finished and the loop can end.
+
+```
+} while ($webrequest.Headers.Link.EndsWith('rel="next"'))
+```
+
+Now that we have looped through all of the pages of users and stored them in the `$allusers` variable we will use the Where-Object cmdlet to filter the results and remove any users whose status is DEPROVISIONED.
+
+```
+$activeUsers = $allusers | Where-Object { $_.status -ne "DEPROVISIONED" }
+```
 
 Now we will select the user profile properties we want to include in our resulting file and save the list of users as a CSV file.
-<pre>$activeUsers | Select-Object -ExpandProperty profile | Select-Object -Property email, displayName, primaryPhone, mobilePhone, organization, department | Export-Csv -Path $outfile -NoTypeInformation</pre>
-&nbsp;
 
-<hr />
+```
+$activeUsers | Select-Object -ExpandProperty profile | Select-Object -Property email, displayName, primaryPhone, mobilePhone, organization, department | Export-Csv -Path $outfile -NoTypeInformation
+```
 
-&nbsp;
+## Here is the script in its entirety:
 
-<strong>Here is the script in its entirety:</strong>
-<pre>&lt;#
+```
+<#
 Name: get-oktaGroupMembers.ps1
 Purpose: Script for exporting Okta group membership to a csv file
 Author: Chris Neely
 E-mail: chris@chrisneely.tech
 Notes: Requires PowerShell3.0 or later
 Example: .\get-oktaGroupMembers.ps1 -org "tenant" -gid "0000000000" -api_token "0000000000" -outfile "c:\scripts\groupname.csv"
-#&gt;
+#>
 
 #requires -version 3.0
 
 param(
  [Parameter(Mandatory=$true)]$org, # Your tentant prefix - Ex. tenant.okta.com
- [Parameter(Mandatory=$true)]$gid, # The group ID for the group you want to export - Ex. https://tenant-admin.okta.com/admin/group/00000000000000000000
+ [Parameter(Mandatory=$true)]$gid, # The group ID for the group you want to export
  [Parameter(Mandatory=$true)]$api_token, # Your API Token. You can generate this from Admin - Security - API
  [Parameter(Mandatory=$true)]$outfile # The path and file name for the resulting CSV file
  )
@@ -168,7 +177,7 @@ $uri = "https://$org.okta.com/api/v1/groups/$gid/users"
 DO
 {
 $webrequest = Invoke-WebRequest -Headers @{"Authorization" = "SSWS $api_token"} -Method Get -Uri $uri
-$link = $webrequest.Headers.Link.Split("&lt;").Split("&gt;") 
+$link = $webrequest.Headers.Link.Split("<").Split(">") 
 $uri = $link[3]
 $json = $webrequest | ConvertFrom-Json
 $allusers += $json
@@ -178,4 +187,5 @@ $allusers += $json
 $activeUsers = $allusers | Where-Object { $_.status -ne "DEPROVISIONED" }
 
 ### Select the user profile properties we want and export to CSV
-$activeUsers | Select-Object -ExpandProperty profile | Select-Object -Property email, displayName, primaryPhone, mobilePhone, organization, department | Export-Csv -Path $outfile -NoTypeInformation</pre>
+$activeUsers | Select-Object -ExpandProperty profile | Select-Object -Property email, displayName, primaryPhone, mobilePhone, organization, department | Export-Csv -Path $outfile -NoTypeInformation
+```
