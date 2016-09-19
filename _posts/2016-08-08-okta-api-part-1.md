@@ -37,65 +37,86 @@ curl -v -X GET \
 As we can see in the above request example from the documentation the URI to list the members of the group is `https://tenant.okta.com/api/v1/groups/groupid/users`. You will want to change "tenant" and "groupid" to the respective values for your Okta environment. You will also notice that the request example shows that this is a `get` method and that we need to include headers for the `application type` and `authorization token`. We will use this later in the script to make the request and return the list of users.
 
 ## How to find an Okta groupID:
-The easiest way I've found to get the groupID is by going into the Okta administration console and searching for the group you want to use. When you load the management page for that group the URL for that page will have the groupID in it. Example: https://tenant-admin.okta.com/admin/group/0000 .  The 0000 number is the group ID and you will need to plug this into the script for testing.
+The easiest way I've found to get the groupID is by going into the Okta administration console and searching for the group you want to use. When you load the management page for that group the URL for that page will have the groupID in it.
+
+Example: `https://tenant-admin.okta.com/admin/group/0000`
+
+The 0000 number is the group ID and you will need to plug this into the script for testing.
 
 ## Lets review the code...
-I've put a comment block at the beginning of the script with Information about the script and an example of how to use it.  Since this is part of a comment block it will not be executed as part of the code.
-<pre>&lt;#
+I've put a comment block at the beginning of the script with Information about the script and an example of how to use it. Since this is part of a comment block it will not be executed as part of the code.
+
+```PowerShell
+<#
 Name: get-oktaGroupMembers.ps1
 Purpose: Script for exporting Okta group membership to a csv file
 Author: Chris Neely
 E-mail: chris@chrisneely.tech
 Notes: Requires PowerShell3.0 or later
 Example: .\get-oktaGroupMembers.ps1 -org "tenant" -gid "0000" -api_token "0000" -outfile "c:\scripts\groupname.csv"
-#&gt;</pre>
-&nbsp;
+#>
+```
 
-This line will prevent the script from running if PowerShell version 3.0 or later is not installed on the system.  This script requires version 3.0 or later as this is the version they added the Invoke-WebRequest cmdlet to PowerShell.
-<pre>#requires -version 3.0</pre>
-&nbsp;
+This line will prevent the script from running if PowerShell version 3.0 or later is not installed on the system. This script requires version 3.0 or later as this is the version they added the Invoke-WebRequest cmdlet to PowerShell.
 
-Configure the parameters for the script and make them mandatory.  I've added a comment next to each parameter so you have an example of what is expected.  Parameters make it possible for you to provide these values when executing the script.  This saves time as you don't have to hard code values into the script and change them each time you run it.
-<pre>param(
+`#requires -version 3.0`
+
+Configure the parameters for the script and make them mandatory. I've added a comment next to each parameter so you have an example of what is expected. Parameters make it possible for you to provide these values when executing the script. This saves time as you don't have to hard code values into the script and change them each time you run it.
+
+```PowerShell
+param(
  [Parameter(Mandatory=$true)]$org, # Your tentant prefix - Ex. tenant.okta.com
- [Parameter(Mandatory=$true)]$gid, # The group ID for the group you want to export - Ex. https://tenant-admin.okta.com/admin/group/00000000000000000000
+ [Parameter(Mandatory=$true)]$gid, # The group ID for the group you want to export
  [Parameter(Mandatory=$true)]$api_token, # Your API Token. You can generate this from Admin - Security - API
  [Parameter(Mandatory=$true)]$outfile # The path and file name for the resulting CSV file
- )</pre>
-&nbsp;
+ )
+```
 
-Here we are defining $allusers and $selectedUsers as empty arrays.  This is called typecasting and we are doing this so that our script knows these variables should be Arrays and not some other type of PowerShell object.  We will use $allusers to store the response of the requests we make and we will use $selectedUsers to store the filtered list that removes any users that are deprovisioned.
-<pre>$allusers = @()
-$selectedUsers = @()</pre>
-&nbsp;
+Here we are defining `$allusers` and `$selectedUsers` as empty arrays. This is called typecasting and we are doing this so that our script knows these variables should be Arrays and not some other type of PowerShell object. We will use `$allusers` to store the response of the requests we make and we will use `$selectedUsers` to store the filtered list that removes any users that are deprovisioned.
 
-Set $uri as the API URI for use in our loop.  This is going to be the same URI we found earlier by referencing the Okta API Documentation.  We are defining this outside of the loop as the loop will need to re-define $uri in each iteration to account for the <a href="http://developer.okta.com/docs/api/getting_started/design_principles.html#pagination">pagination </a>built into the Okta API.
-<pre>$uri = "https://$org.okta.com/api/v1/groups/$gid/users"</pre>
-&nbsp;
+```PowerShell
+$allusers = @()
+$selectedUsers = @()
+```
 
-We will be using a DO WHILE loop which will allow the loop to run until a certain condition is met.  We will continue to loop through our results until the last page of the pagination has been reached.  The below commands will run as part of the loop.
+Set `$uri` as the API URI for use in our loop. This is going to be the same URI we found earlier by referencing the Okta API Documentation. We are defining this outside of the loop as the loop will need to re-define $uri in each iteration to account for the [pagination](http://developer.okta.com/docs/api/getting_started/design_principles.html#pagination) built into the Okta API.
 
-Invoke-WebRequest is very similar to CURL, it is going to pass our HTTPS request to the Okta API and then we are going to store the response of that request as a variable named $webrequest.  It is important to include the method (which we previously noted as being <em>Get</em>) and the Authorization Token with the request.
-<pre>$webrequest = Invoke-WebRequest -Headers @{"Authorization" = "SSWS $api_token"} -Method Get -Uri $uri</pre>
-&nbsp;
+```PowerShell
+$uri = "https://$org.okta.com/api/v1/groups/$gid/users"
+```
 
-Working with pagination means if our group contains more members than the default limit allowed by the API we will need to loop through all of the pages in order to gather the profiles for all the users in the group.  This means if our group has 1000 members and the limit for the request is 200 then we will have to loop through 5 pages of results.
+We will be using a `DO WHILE` loop which will allow the loop to run until a certain condition is met. We will continue to loop through our results until the last page of the pagination has been reached. The below commands will run as part of the loop.
 
-Below I have included an example from the Okta API documentation which shows the value of the 'link' header which is returned from the Invoke-WebRequest response.  The value of the 'link' header will contain two links if there are additional pages to process.  The '<span style="color: #3366ff;">self</span>' link will represent the URL of the current list of users that have been returned in the response and the '<span style="color: #33cccc;">next</span>' link will represent the URL for the next page of users.  Each of these links are encapsulated in <em>&lt; &gt;</em> brackets so we will use the split method to break the response into an array with each URL being a different member of the array.  We will then store those links in the array variable $link.
-<p class="highlight"><em><code><span class="s">This is a sample of what the 'link' header response looks like:
-&lt;https://your-domain.okta.com/api/v1/groups/0000/users?limit=200&gt;; rel="<span style="color: #3366ff;">self</span>"
-</span></code><code><span class="s">&lt;https://your-domain.okta.com/api/v1/groups/0000/users?after=0000&amp;limit=200&gt;; rel="<span style="color: #33cccc;">next</span>"</span></code></em></p>
+`Invoke-WebRequest` is very similar to CURL, it is going to pass our HTTPS request to the Okta API and then we are going to store the response of that request as a variable named `$webrequest`. It is important to include the method (which we previously noted as being `Get`) and the Authorization Token with the request.
 
-<pre>$link = $webrequest.Headers.Link.Split("&lt;").Split("&gt;")</pre>
-&nbsp;
+```PowerShell
+$webrequest = Invoke-WebRequest -Headers @{"Authorization" = "SSWS $api_token"} -Method Get -Uri $uri
+```
 
-The URL we will use to request the next page of users is the fourth index in the $link array we created in the previous step (remember that arrays start with at index 0).  It is important for us to update $uri with this link inside of the loop because the Invoke-WebRequest (which is also in the loop) uses $uri to send the new web request for each page of users.  If we did not update this URI we would just end up with an endless loop of the same users over and over again as the WebRequest result would be the same every iteration of the loop and the WHILE condition would never be met.
-<pre>$uri = $link[3]</pre>
-&nbsp;
+Working with pagination means if our group contains more members than the default limit allowed by the API we will need to loop through all of the pages in order to gather the profiles for all the users in the group. This means if our group has 1000 members and the limit for the request is 200 then we will have to loop through 5 pages of results.
+
+Below I have included an example from the Okta API documentation which shows the value of the 'link' header which is returned from the Invoke-WebRequest response. The value of the 'link' header will contain two links if there are additional pages to process. The `self` link will represent the URL of the current list of users that have been returned in the response and the `next` link will represent the URL for the next page of users. Each of these links are encapsulated in < > brackets so we will use the split method to break the response into an array with each URL being a different member of the array. We will then store those links in the array variable `$link`.
+
+
+This is a sample of what the 'link' header response looks like:
+`<https://your-domain.okta.com/api/v1/groups/0000/users?limit=200>; rel="self"`
+`<https://your-domain.okta.com/api/v1/groups/0000/users?after=0000&limit=200>; rel="next"`
+
+```PowerShell
+$link = $webrequest.Headers.Link.Split("<").Split(">")
+```
+
+The URL we will use to request the next page of users is the fourth index in the `$link` array we created in the previous step (remember that arrays start with at index 0). It is important for us to update `$uri` with this link inside of the loop because the Invoke-WebRequest (which is also in the loop) uses `$uri` to send the new web request for each page of users. If we did not update this URI we would just end up with an endless loop of the same users over and over again as the WebRequest result would be the same every iteration of the loop and the `WHILE` condition would never be met.
+
+```PowerShell
+$uri = $link[3]
+```
 
 Okta formats thier results in JSON so we use ConvertFrom-Json to convert the results of the web request to JSON. We then store the current page of user results in the $json object.
-<pre>$json = $webrequest | ConvertFrom-Json</pre>
-&nbsp;
+
+```PowerShell
+$json = $webrequest | ConvertFrom-Json
+```
 
 At this point we need a way to store all of the pages of users in one array.  The answer is to append the converted JSON results to the $allusers array.  If there are multiple iterations of the loop performed we have an all-inclusive list of previous results plus the current iterations results.  If we skip this step then we would just overwrite our results every time the loop ran and not end up with all of the users.
 <pre>$allusers += $json</pre>
