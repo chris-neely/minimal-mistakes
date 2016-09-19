@@ -57,6 +57,7 @@ Example: .\get-oktaGroupMembers.ps1 -org "tenant" -gid "0000" -api_token "0000" 
 #>
 ```
 
+
 This line will prevent the script from running if PowerShell version 3.0 or later is not installed on the system. This script requires version 3.0 or later as this is the version they added the Invoke-WebRequest cmdlet to PowerShell.
 
 `#requires -version 3.0`
@@ -146,6 +147,8 @@ $activeUsers | Select-Object -ExpandProperty profile | Select-Object -Property e
 ```
 
 ## Here is the script in its entirety:
+
+You can also download this script on [github](https://github.com/chris-neely/okta-export-group-membership).
 
 ```
 <#
