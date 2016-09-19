@@ -8,35 +8,38 @@ tags:
 ## Introduction
 This is the first post in a series I will be writing about using the Okta API in conjunction with PowerShell to accomplish basic administrative tasks and build a foundation we can use to start creating automation scripts.  As we delve deeper into the Okta API we will learn to leverage examples from the Okta API documentation and use PowerShell to interact with the Okta API.  In Part 1 we will review a script I created to write a list of group members to a CSV file.  In Part 2 we will review a script that takes a CSV file of users and adds them to an Okta group.
 
-You can find the source for the script on <a href="https://github.com/chris-neely/okta-export-group-membership">my Github page</a>.
+You can find the source for the script on [my Github page](https://github.com/chris-neely/okta-export-group-membership).
 
 Lets dive right in...
 
 ## Summary
 Currently it is not possible to export a list of users from an Okta group via the GUI.  Having this functionality is incredibly useful as it provides a way to compare group memberships, simplify tedious administration tasks, and provide reporting information.  I've written a PowerShell script which uses the Okta API to export a list of group members to a CSV file.
 
-Today's post will focus on reviewing this script line for line and explaining what the code does.  <a href="http://developer.okta.com/docs/api/resources/groups#list-group-members">The Okta API </a>also has additional information you may want to review about group membership operations.  It is worth noting Okta limits the results of this API request to 1000 results, due to this I have created a loop to handle <a href="http://developer.okta.com/docs/api/getting_started/design_principles.html#pagination">pagination</a> of each page for groups that are over the limit.
-<h1><strong>Additional information</strong></h1>
+Today's post will focus on reviewing this script line for line and explaining what the code does. [The Okta API](http://developer.okta.com/docs/api/resources/groups#list-group-members) also has additional information you may want to review about group membership operations. It is worth noting Okta limits the results of this API request to 1000 results, due to this I have created a loop to handle [pagination](http://developer.okta.com/docs/api/getting_started/design_principles.html#pagination) of each page for groups that are over the limit.
+
+## Additional information
 In order to start writing this script we need to gather some information from the Okta API documentation.  First we will need to generate an API token from the Okta administration console. Then we will need to know the URI from the Okta API used to gather the list of users from the group.  The Okta API documentation will help us figure out the URI as well as the headers and method used to make the request. The last thing we need to figure out is the groupID for the group we want to export.
 
 ## How to generate an API Token:
-
-To generate an API token  you can go to Admin &gt;&gt; Security &gt;&gt; API and click on the "create token" button.  Give the token a descriptive name and then click on the "create token" button.  You will need to save this token in a secure location as you will not be able to view it again.
+To generate an API token you can go to `Admin > Security > API` and click on the `create token` button. Give the token a descriptive name and then click on the `create token` button. You will need to save this token in a secure location as you will not be able to view it again.
 
 ## How to figure out the API request URI:
+In the [Okta API Documentation](http://developer.okta.com/docs/api/resources/groups#list-group-members) you can find a request example and a response example. These are written as BASH scripts but we can easily use PowerShell to achieve the same result.
 
-In the <a href="http://developer.okta.com/docs/api/resources/groups#list-group-members">Okta API Documentation</a> you can find a request example and a response example.  These are written as BASH scripts but we can easily use PowerShell to achieve the same result.
-<pre class="highlight"><code>curl -v -X GET <span class="se">\</span>
--H <span class="s2">"Accept: application/json"</span> <span class="se">\</span>
--H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
--H <span class="s2">"Authorization: SSWS </span><span class="k">${</span><span class="nv">api_token</span><span class="k">}</span><span class="s2">"</span> <span class="se">\</span>
-<span class="s2">"https://</span><span class="k">${</span><span class="nv">org</span><span class="k">}</span><span class="s2">.okta.com/api/v1/groups/00g1fanEFIQHMQQJMHZP/users?limit=200"</span></code></pre>
-As we can see in the above request example from the documentation the URI to list the members of the group is <span style="text-decoration: underline;">https://<em>tenant</em>.okta.com/api/v1/groups/<em>groupid</em>/users</span>.  You will want to change "tenant" and "groupid" to the respective values for your Okta environment.  You will also notice that the request example shows that this is a <em>get</em> method and that we need to include headers for the <em>application type</em> and <em>authorization token</em>.  We will use this later in the script to make the request and return the list of users.
+```bash
+curl -v -X GET \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-H "Authorization: SSWS ${api_token}" \
+"https://${org}.okta.com/api/v1/groups/00g1fanEFIQHMQQJMHZP/users?limit=200"
+```
+
+As we can see in the above request example from the documentation the URI to list the members of the group is `https://tenant.okta.com/api/v1/groups/groupid/users`. You will want to change "tenant" and "groupid" to the respective values for your Okta environment. You will also notice that the request example shows that this is a `get` method and that we need to include headers for the `application type` and `authorization token`. We will use this later in the script to make the request and return the list of users.
 
 ## How to find an Okta groupID:
+The easiest way I've found to get the groupID is by going into the Okta administration console and searching for the group you want to use. When you load the management page for that group the URL for that page will have the groupID in it. Example: https://tenant-admin.okta.com/admin/group/0000 .  The 0000 number is the group ID and you will need to plug this into the script for testing.
 
-The easiest way I've found to get the groupID is by going into the Okta administration console and searching for the group you want to use.  When you load the management page for that group the URL for that page will have the groupID in it.  Example: https://tenant-admin.okta.com/admin/group/00000000000000000000.  The 00000000000000000000 number is the group ID and you will need to plug this into the script for testing.
-<h1><strong>Lets review the code...</strong></h1>
+## Lets review the code...
 I've put a comment block at the beginning of the script with Information about the script and an example of how to use it.  Since this is part of a comment block it will not be executed as part of the code.
 <pre>&lt;#
 Name: get-oktaGroupMembers.ps1
