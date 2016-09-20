@@ -11,7 +11,7 @@ title                    : "Chris Neely.Tech"
 title_separator          : "-"
 name                     : "Chris Neely"
 description              : "Hello Person. Welcome to this place."
-url                      : "https://chris-neely.github.io" # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
+url                      : "http://chris-neely.github.io" # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : "chris-neely/chris-neely.github.io" # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
 teaser                   : # filename of teaser fallback teaser image placed in /images/, .e.g. "500x300.png"
@@ -82,7 +82,7 @@ author:
   bio              : " "
   location         : "Oklahoma City"
   email            :
-  uri              : "http://chrisneely.tech"
+  uri              : "http://www.chrisneely.tech"
   bitbucket        :
   codepen          :
   dribbble         :
