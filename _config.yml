@@ -7,7 +7,7 @@
 
 # Site Settings
 locale                   : "en"
-title                    : "Chris Neely.Tech"
+title                    : "Chris Neely"
 title_separator          : "-"
 name                     : "Chris Neely"
 description              : "Hello Person. Welcome to this place."
@@ -82,7 +82,7 @@ author:
   bio              : " "
   location         : "Oklahoma City"
   email            :
-  uri              : "http://www.chrisneely.tech"
+  uri              : "http://www.neely.pro"
   bitbucket        :
   codepen          :
   dribbble         :
