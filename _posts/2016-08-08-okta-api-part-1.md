@@ -1,5 +1,5 @@
 ---
-title: "Okta API Series Part 1 - List Group Members"
+title: "Okta Admin Scripts Part 1 - List Group Members"
 tags: 
   - PowerShell
   - Okta
