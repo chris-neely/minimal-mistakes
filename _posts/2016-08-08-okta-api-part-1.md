@@ -8,7 +8,7 @@ tags:
 ## Introduction
 This is the first post in a series I will be writing about using the Okta API in conjunction with PowerShell to accomplish basic administrative tasks and build a foundation we can use to start creating automation scripts.  As we delve deeper into the Okta API we will learn to leverage examples from the Okta API documentation and use PowerShell to interact with the Okta API.  In Part 1 we will review a script I created to write a list of group members to a CSV file.  In Part 2 we will review a script that takes a CSV file of users and adds them to an Okta group.
 
-You can find the source for the script on [my Github page](https://github.com/chris-neely/okta-export-group-membership).
+You can find the source for the script on [my Github page](https://github.com/chris-neely/okta-admin-scripts).
 
 Lets dive right in...
 
@@ -148,47 +148,49 @@ $activeUsers | Select-Object -ExpandProperty profile | Select-Object -Property e
 
 ## Here is the script in its entirety:
 
-You can also download this script on [github](https://github.com/chris-neely/okta-export-group-membership).
+You can also download this script on [github](https://github.com/chris-neely/okta-admin-scripts).
 
 ```
 <#
 Name: get-oktaGroupMembers.ps1
 Purpose: Script for exporting Okta group membership to a csv file
 Author: Chris Neely
-E-mail: chris@chrisneely.tech
+E-mail: chris@neely.pro
 Notes: Requires PowerShell3.0 or later
-Example: .\get-oktaGroupMembers.ps1 -org "tenant" -gid "0000000000" -api_token "0000000000" -outfile "c:\scripts\groupname.csv"
+Example: .\get-oktaGroupMembers.ps1 -org "tenant.okta.com" -gid "0000000000" -api_token "0000000000" -outfile "c:\scripts\groupname.csv"
 #>
 
 #requires -version 3.0
 
 param(
- [Parameter(Mandatory=$true)]$org, # Your tentant prefix - Ex. tenant.okta.com
- [Parameter(Mandatory=$true)]$gid, # The group ID for the group you want to export
- [Parameter(Mandatory=$true)]$api_token, # Your API Token. You can generate this from Admin - Security - API
- [Parameter(Mandatory=$true)]$outfile # The path and file name for the resulting CSV file
- )
+    [Parameter(Mandatory=$true)]$org, # Your tentant prefix - Ex. tenant.okta.com
+    [Parameter(Mandatory=$true)]$gid, # The group ID for the group you want to export - Ex. https://tenant-admin.okta.com/admin/group/00000000000000000000
+    [Parameter(Mandatory=$true)]$api_token, # Your API Token.  You can generate this from Admin - Security - API
+    [Parameter(Mandatory=$true)]$outfile # The path and file name for the resulting CSV file
+    )
 
-### Define $allusers and $selectedUsers as empty arrays
+### Define $allusers as empty array
 $allusers = @()
-$selectedUsers = @()
+
+$headers = @{"Authorization" = "SSWS $api_token"; "Accept" = "application/json"; "Content-Type" = "application/json"}
 
 ### Set $uri as the API URI for use in the loop
-$uri = "https://$org.okta.com/api/v1/groups/$gid/users"
+$uri = "https://$org/api/v1/groups/$gid/users"
 
 ### Use a while loop and get all users from Okta API
-DO
-{
-$webrequest = Invoke-WebRequest -Headers @{"Authorization" = "SSWS $api_token"} -Method Get -Uri $uri
-$link = $webrequest.Headers.Link.Split("<").Split(">") 
-$uri = $link[3]
-$json = $webrequest | ConvertFrom-Json
-$allusers += $json
-} while ($webrequest.Headers.Link.EndsWith('rel="next"'))
+do {
+    $webresponse = Invoke-WebRequest -Headers $headers -Method Get -Uri $uri
+    $links = $webresponse.Headers.Link.Split("<").Split(">") 
+    $uri = $links[3]
+    $users = $webresponse | ConvertFrom-Json
+    $allusers += $users
+} while ($webresponse.Headers.Link.EndsWith('rel="next"'))
 
 ### Filter the results and remove any DEPROVISIONED users
 $activeUsers = $allusers | Where-Object { $_.status -ne "DEPROVISIONED" }
 
 ### Select the user profile properties we want and export to CSV
-$activeUsers | Select-Object -ExpandProperty profile | Select-Object -Property email, displayName, primaryPhone, mobilePhone, organization, department | Export-Csv -Path $outfile -NoTypeInformation
+$activeUsers | Select-Object -ExpandProperty profile | 
+    Select-Object -Property email, displayName, primaryPhone, mobilePhone, organization, department | 
+    Export-Csv -Path $outfile -NoTypeInformation
 ```
