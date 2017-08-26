@@ -38,7 +38,7 @@ param(
     )
 ```
 
-Next we need to define our headers for the web request. We are defining the content type as json and including our API token for authorization.
+Next we need to define our headers for the web request. We are defining the content type as JSON and including our API token for authorization.
 
 ```
 ### Define headers for web request
@@ -52,27 +52,29 @@ Next we are going to define the `$userlist` variable which will contain the cont
 $userlist = Import-CSV -Path "$path" -Header "email"
 ```
 
-Now we need to loop through the list of imported email addresses and attempt to add each one to the group. For this we will use a foreach loop and then attempt a set of api calls against each email address in the list.
+Now we need to loop through the list of imported email addresses and attempt to add each one to the group. For this we will use a `foreach` loop and then attempt a set of api calls against each email address in the list.
 
 ```
 ### Loop through each item in the list
 foreach ($user in $userlist) {
 ```
 
-Within the foreach loop we will need to define a variable with the users email address.
+Within the foreach loop we will need to define a variable `$email` with the user's email address.
 
 ```
 ### Variable for user's email address
 $email = $user.email
 ```
 
-Next we will use a `try` and `catch` statement to attempt to add the user to the group and then catch the error if it is not successful. You cannot use the Okta API to add a member to a group by email address, so we need to get the user's Okta uid. In the code below we define the `$webrequest` variable to store the result of our api call. In the `Invoke-WebRequest` cmdlet we need to define our `$headers`, our `Method`, our `uri`, and then we are also going to add `ErrorAction:Stop` parameter to the cmdlet so if there is an error it will stop processing the rest of the `try` statement and go directly to the catch and the end of the script.
+Next we will use a `try` and `catch` statement to attempt to add the user to the group and then catch the error if it is not successful. You cannot use the Okta API to add a member to a group by email address, so we need to get the user's Okta uid.
 
-If there is an error with the API request the remaining code will be skipped and the `catch` will be processed. Our catch here simply writes an error code to the console so we know what went wrong. Usually you will see something like a 404 code which means a user with that login was not found.
+In the code below we define the `$webrequest` variable to store the result of our api call. In the `Invoke-WebRequest` cmdlet we need to define our `$headers`, our `Method`, our `uri`, and then we are also going to add `ErrorAction:Stop` parameter to the cmdlet so if there is an error it will stop processing the rest of the `try` statement and go directly to the catch at the end of the script.
 
-Keep in mind we are using nested `try` and `catch` statements in this script. I recommend looking at the entire script to get a better idea of how the code flows. I've changed some of the ordering and removed the nested portions in this explanation so the code is easier to follow.
+If there is an error with the API request the remaining code in the `try` statement will be skipped and the `catch` will be processed. Our catch here simply writes an error code to the console so we know what went wrong. Usually you will see something like a 404 code which in this case means a user with that login was not found.
 
-After we make the api call we will then parse the json in the result using `ConvertFrom-Json`. We will then select the user's Okta id and store it in the `$uid` variable.
+Keep in mind we are using nested `try` and `catch` statements in this script. I recommend looking at the [entire script](https://github.com/chris-neely/okta-admin-scripts/blob/master/put-oktaGroupMembers.ps1) to get a better idea of how the code flows. I've changed some of the ordering and removed the nested portions in this explanation so the code is easier to follow.
+
+After we make the api call we will then parse the JSON in the result using `ConvertFrom-Json`. We will then select the user's Okta id and store it in the `$uid` variable.
 
 For additional information on this specific api request you can review the Okta documentation for [getting a user with login](https://developer.okta.com/docs/api/resources/users.html#get-user-with-login).
 
@@ -92,9 +94,9 @@ try {
 }
 ```
 
-Now that we have the user's Okta id we can now run an api request to add the user to an already existing Okta group using their uid. We will again use a `try` and `catch` statement but this time it is nested within the above try statement so that we don't attempt add a user to the Okta group which we failed to lookup their uid.
+Now that we have the user's Okta id we can now run an api request to add the user to an already existing Okta group. We will again use a `try` and `catch` statement but this time it is nested within the above try statement so that we don't attempt add a user to the Okta group which we failed to lookup their uid.
 
-Below we define `$result` as the result of the web request and again define our headers, method, uri, and `ErrorAction:Stop` parameters. Note that in the uri we have included the `$gid` and `$uid` variables so that the api can add the corresponding user the group. We then have an `if` statement that will write a success message to the console if the user is added to the group or already exists in the group.
+Below we define `$result` as the result of the web request and again define our headers, method, uri, and `ErrorAction:Stop` parameters. Note that in the uri we have included the `$gid` and `$uid` variables so that the API call can add the corresponding user to the group. We then have an `if` statement that will write a success message to the console if the user is added to the group or already exists in the group.
 
 If there is an error adding the user to the group the `catch` will write an error code to the console.
 
