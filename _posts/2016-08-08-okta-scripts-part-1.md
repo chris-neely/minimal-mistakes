@@ -14,7 +14,7 @@ You can find the source for the script on [my Github page](https://github.com/ch
 Lets dive right in...
 
 ## Summary
-Currently it is not possible to export a list of users from an Okta group via the GUI.  Having this functionality is incredibly useful as it provides a way to compare group memberships, simplify tedious administration tasks, and provide reporting information.  I've written a PowerShell script which uses the Okta API to export a list of group members to a CSV file.
+At the current time this article is published it is not possible to export a list of users from an Okta group via the GUI.  Having this functionality is incredibly useful as it provides a way to compare group memberships, simplify tedious administration tasks, and provide reporting information.  I've written a PowerShell script which uses the Okta API to export a list of group members to a CSV file.
 
 Today's post will focus on reviewing this script line for line and explaining what the code does. [The Okta API](http://developer.okta.com/docs/api/resources/groups#list-group-members) also has additional information you may want to review about group membership operations. It is worth noting Okta limits the results of this API request to 1000 results, due to this I have created a loop to handle [pagination](http://developer.okta.com/docs/api/getting_started/design_principles.html#pagination) of each page for groups that are over the limit.
 
