@@ -7,7 +7,7 @@ tags:
 ---
 
 ## Summary
-I highly recommend you read [my previous post](.\okta-scripts-part-1) if this is your first time working with the Okta API. Last time I went into detail about how to generate Okta API keys, find Okta group ids, and other prerequisites we will not cover in this post. In this post we are going to cover taking a CSV file of email addresses and adding those corresponding users to an already existing Okta group via the Okta api.
+I highly recommend you read [my previous post](http://www.neely.pro/okta-scripts-part-1/) if this is your first time working with the Okta API. Last time I went into detail about how to generate Okta API keys, find Okta group ids, and other prerequisites we will not cover in this post. In this post we are going to cover taking a CSV file of email addresses and adding those corresponding users to an already existing Okta group via the Okta api.
 
 ## Lets review the code...
 I've put a comment block at the beginning of the script with Information about the script and an example of how to use it. Since this is part of a comment block it will not be executed as part of the code.
