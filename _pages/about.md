@@ -4,7 +4,6 @@ layout: single
 permalink: /about/
 ---
 
-#Summary
 My name is Chris Neely and I currently work as a Sr. Systems Engineer in Oklahoma City, OK.  If you have any questions that this page does not answer please feel free to reach out to me on any of the social networks listed on this site.
 
 I have worked in the information technology field for over a decade; beginning as support staff for a dial-up ISP, a brief time working desk-side support and then the majority of my career designing and supporting infrastructure platforms and systems.  During this progression I mostly worked with on-premise infrastructure solutions.
@@ -13,7 +12,7 @@ My latest venture has been working with a team of talented individuals to move a
 
 I am married to my amazing wife Katie and we have two wonderful healthy sons, James and William.  My interests are all things technology, music production, and occasionally gaming.
 
-#Certifications
-![](http://www.neely.pro/images/AWS-CSA.png?raw=true)  
 
+![](http://www.neely.pro/images/AWS-CERT.png?raw=true)  
+![](http://www.neely.pro/images/AWS-CSA.png?raw=true)  
 ![](http://www.neely.pro/images/AWS-CDA.png?raw=true)
