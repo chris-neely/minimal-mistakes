@@ -13,6 +13,6 @@ My latest venture has been working with a team of talented individuals to move a
 I am married to my amazing wife Katie and we have two wonderful healthy sons, James and William.  My interests are all things technology, music production, and occasionally gaming.
 
 
-![](http://www.neely.pro/images/AWS-CERT.png?raw=true)  
-![](http://www.neely.pro/images/AWS-CSA.png?raw=true)  
-![](http://www.neely.pro/images/AWS-CDA.png?raw=true)
+![](https://www.neely.pro/images/AWS-CERT.png?raw=true)  
+![](https://www.neely.pro/images/AWS-CSA.png?raw=true)  
+![](https://www.neely.pro/images/AWS-CDA.png?raw=true)
